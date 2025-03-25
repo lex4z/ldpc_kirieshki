@@ -1,4 +1,6 @@
-%%
+clear
+clc
+close all
 % input data
 num_frames = 100;
 
@@ -19,6 +21,38 @@ info_bits = randi([0 1], num_info_bits*num_frames, 1);
 for f = 1:num_frames
     codewords((f-1)*block_length+1:f*block_length) = ldpcEncode(info_bits((f-1)*num_info_bits+1:f*num_info_bits), cfg_ldpc_enc);
 end
+
+K = length(codewords);
+EbN0_dB = -4:1:10;
+EbN0 = 10.^(EbN0_dB./10);
+Pb = 1;
+noise_var = sqrt(Pb./(2.*EbN0));
+
+tx_sig = codewords*(-2)+1;
+rx_sig = zeros(length(noise_var), K);
+for i = 1:length(noise_var)
+    rx_sig(i,:) = tx_sig + noise_var(i)*randn(size(tx_sig));
+end
+rx_info = (1-sign(rx_sig))/2;
+
+razn = codewords-rx_info;
+error_cnt = zeros(1,length(noise_var));
+for i = 1:length(noise_var)
+    error_cnt(i) = sum(razn(i,:)~=0);
+end
+
+error_p = error_cnt/K;
+
+%% график
+figure
+semilogy(EbN0_dB,error_p)
+grid on
+xlim([min(EbN0_dB) max(EbN0_dB)])
+ylim([1e-5 1])
+ylabel("BER")
+
+%%
+t_words = reshape(codewords,block_length,length(codewords)/block_length);
 
 %%
 for i=1:min(size(pcmatrix))

@@ -1,7 +1,7 @@
 clear
 clc
 close all
-% input data
+%% input data
 num_frames = 100;
 
 P = [16 17 22 24  9  3 14 -1  4  2  7 -1 26 -1  2 -1 21 -1  1  0 -1 -1 -1 -1
@@ -22,37 +22,22 @@ for f = 1:num_frames
     codewords((f-1)*block_length+1:f*block_length) = ldpcEncode(info_bits((f-1)*num_info_bits+1:f*num_info_bits), cfg_ldpc_enc);
 end
 
-K = length(codewords);
-EbN0_dB = -4:1:10;
+%%
+t_words = reshape(codewords,length(codewords)/block_length,block_length);
+
+%%
+info = t_words(1,:);
+K = length(info);
+EbN0_dB = -4:0.5:10;
 EbN0 = 10.^(EbN0_dB./10);
 Pb = 1;
 noise_var = sqrt(Pb./(2.*EbN0));
 
-tx_sig = codewords*(-2)+1;
+tx_sig = info*(-2)+1;
 rx_sig = zeros(length(noise_var), K);
 for i = 1:length(noise_var)
     rx_sig(i,:) = tx_sig + noise_var(i)*randn(size(tx_sig));
 end
-rx_info = (1-sign(rx_sig))/2;
-
-razn = codewords-rx_info;
-error_cnt = zeros(1,length(noise_var));
-for i = 1:length(noise_var)
-    error_cnt(i) = sum(razn(i,:)~=0);
-end
-
-error_p = error_cnt/K;
-
-%% график
-figure
-semilogy(EbN0_dB,error_p)
-grid on
-xlim([min(EbN0_dB) max(EbN0_dB)])
-ylim([1e-5 1])
-ylabel("BER")
-
-%%
-t_words = reshape(codewords,block_length,length(codewords)/block_length);
 
 %%
 for i=1:min(size(pcmatrix))
@@ -64,3 +49,27 @@ for i=1:min(size(pcmatrix))
       end
    end
 end
+%%
+rx_info = zeros(length(noise_var), K);
+for i = 1:length(noise_var)
+     rx_info(i,1:num_info_bits) = LDPC_decoder(rx_sig(i,:),num_info_bits,t,5);
+end
+
+
+%%
+
+razn = info-rx_info;
+error_cnt = zeros(1,length(noise_var));
+for i = 1:length(noise_var)
+    error_cnt(i) = sum(razn(i,1:num_info_bits)~=0);
+end
+
+error_p = error_cnt/K;
+
+%% график
+figure
+semilogy(EbN0_dB,error_p)
+grid on
+xlim([min(EbN0_dB) max(EbN0_dB)])
+ylim([1e-5 1])
+ylabel("BER")

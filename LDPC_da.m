@@ -25,7 +25,7 @@ end
 %%
 info = codewords;
 K = length(info);
-EbN0_dB = 2;%-4:1:10;
+EbN0_dB = -4:1:10;
 EbN0 = 10.^(EbN0_dB./10);
 Pb = 1;
 noise_var = sqrt(Pb./(2.*EbN0));
@@ -52,49 +52,52 @@ for i=1:min(size(pcmatrix))
    end
 end
 % %%
-% rx_info = zeros(length(noise_var), num_info_bits*num_frames);
-% 
-% for i = 1:length(noise_var)
-%      for j = 1:(K/block_length)
-%         rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(i,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,5);
-%      end
-% end
+rx_info = zeros(length(noise_var), num_info_bits*num_frames);
 
-%%
-rx_info = zeros(length(iter_num), num_info_bits*num_frames);
-
-for i = 1:length(iter_num)
+for i = 1:length(noise_var)
      for j = 1:(K/block_length)
-        rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(1,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,iter_num(i));
+        rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(i,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,5);
      end
 end
+
+%%
+% rx_info = zeros(length(iter_num), num_info_bits*num_frames);
+% 
+% for i = 1:length(iter_num)
+%      for j = 1:(K/block_length)
+%         rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(1,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,iter_num(i));
+%      end
+% end
 
 %%
 
 razn = info_bits'-rx_info;
 %error_cnt = zeros(1,length(iter_num));
+% for i = 1:length(iter_num)
+%     error_cnt(i) = sum(razn(i,:)~=0);
+% end
 error_cnt = zeros(1,length(noise_var));
-for i = 1:length(iter_num)
+for i = 1:length(noise_var)
     error_cnt(i) = sum(razn(i,:)~=0);
 end
 
 error_p = error_cnt/K;
 
-% %% график
-% figure
-% semilogy(EbN0_dB,error_p)
-% grid on
-% xlim([min(EbN0_dB) max(EbN0_dB)])
-% ylim([1e-5 1])
-% ylabel("BER")
-
 %% график
 figure
-semilogy(iter_num,error_p)
+semilogy(EbN0_dB,error_p)
 grid on
-xlim([min(iter_num) max(iter_num)])
-%ylim([1e-5 1])
-%ylabel("BER")
+xlim([min(EbN0_dB) max(EbN0_dB)])
+ylim([1e-5 1])
+ylabel("BER")
+
+% %% график
+% figure
+% semilogy(iter_num,error_p)
+% grid on
+% xlim([min(iter_num) max(iter_num)])
+% %ylim([1e-5 1])
+% %ylabel("BER")
 
 
 %%

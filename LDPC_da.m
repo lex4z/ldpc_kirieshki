@@ -101,7 +101,7 @@ ylabel("BER")
 % %ylabel("BER")
 
 
-%%
+%% BPSK
 K = 1e6;
 info = randi([0 1],1,K);
 

@@ -32,11 +32,15 @@ noise_var = sqrt(Pb./(2.*EbN0));
 iter_num = 1:30;
 
 tx_sig = info*(-2)+1;
-rx_sig = zeros(length(iter_num), K);
-for i = 1:length(iter_num)
-    rx_sig(i,:) = tx_sig + noise_var(1)*randn(size(tx_sig));
-end
+% rx_sig = zeros(length(iter_num), K);
+% for i = 1:length(iter_num)
+%     rx_sig(i,:) = tx_sig + noise_var(1)*randn(size(tx_sig));
+% end
 
+rx_sig = zeros(length(noise_var), K);
+for i = 1:length(noise_var)
+    rx_sig(i,:) = tx_sig + noise_var(i)*randn(size(tx_sig));
+end
 %%
 for i=1:min(size(pcmatrix))
   for j=1:max(size(pcmatrix))

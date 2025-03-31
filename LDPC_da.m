@@ -25,11 +25,11 @@ end
 %%
 info = codewords;
 K = length(info);
-EbN0_dB = -4:1:10;
+EbN0_dB = -4:0.5:10;
 EbN0 = 10.^(EbN0_dB./10);
 Pb = 1;
 noise_var = sqrt(Pb./(2.*EbN0));
-iter_num = 1:30;
+iter_num = 2; %1:30;
 
 tx_sig = info*(-2)+1;
 % rx_sig = zeros(length(iter_num), K);
@@ -51,12 +51,13 @@ for i=1:min(size(pcmatrix))
       end
    end
 end
-% %%
+
+%%
 rx_info = zeros(length(noise_var), num_info_bits*num_frames);
 
 for i = 1:length(noise_var)
      for j = 1:(K/block_length)
-        rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(i,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,5);
+        rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(i,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,iter_num);
      end
 end
 

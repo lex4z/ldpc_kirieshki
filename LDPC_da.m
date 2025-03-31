@@ -72,7 +72,8 @@ end
 %%
 
 razn = info_bits'-rx_info;
-error_cnt = zeros(1,length(iter_num));
+%error_cnt = zeros(1,length(iter_num));
+error_cnt = zeros(1,length(noise_var));
 for i = 1:length(iter_num)
     error_cnt(i) = sum(razn(i,:)~=0);
 end

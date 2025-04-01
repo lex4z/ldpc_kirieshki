@@ -7,7 +7,7 @@ function data_out = LDPC_decoder(data_in, num_of_bits, H_matrix, iter_num)
 
     for iter = 1:iter_num
         for i = 1:min(size(L_matrix))
-            L_matrix(i,H_matrix(i,:)) = row_op(L_matrix(i,logical(H_matrix(i,:))));
+            L_matrix(i,H_matrix(i,:)) = row_op(L_matrix(i,H_matrix(i,:)));
         end
     
         llr_vector = rx_mod + sum(L_matrix,1);

@@ -1,11 +1,7 @@
 function data_out = decode_LDPC_layered(data_in, num_of_bits, H_matrix, iter_num, ef)
-    rx_mod = data_in;
-    
+    llr_vector = data_in; 
     H_matrix = H_matrix == 1;
-    
-    L_matrix = H_matrix.*rx_mod;
-    llr_vector = rx_mod;
-    
+
     for iter = 1:iter_num
         for i = 1:ef:min(size(L_matrix))
             if(iter == 1) 

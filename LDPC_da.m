@@ -2,7 +2,7 @@ clear
 clc
 close all
 %% input data
-num_frames = 100;
+num_frames = 1000;
 
 P = [16 17 22 24  9  3 14 -1  4  2  7 -1 26 -1  2 -1 21 -1  1  0 -1 -1 -1 -1
      25 12 12  3  3 26  6 21 -1 15 22 -1 15 -1  4 -1 -1 16 -1  0  0 -1 -1 -1
@@ -22,14 +22,14 @@ for f = 1:num_frames
     codewords((f-1)*block_length+1:f*block_length) = ldpcEncode(info_bits((f-1)*num_info_bits+1:f*num_info_bits), cfg_ldpc_enc);
 end
 
-%%
+%% 
 info = codewords;
 K = length(info);
-EbN0_dB = -4:0.5:10;
+EbN0_dB = 0:0.5:5;
 EbN0 = 10.^(EbN0_dB./10);
 Pb = 1;
 noise_var = sqrt(Pb./(2.*EbN0));
-iter_num = 2; %1:30;
+iter_num = 3; %1:30;
 
 tx_sig = info*(-2)+1;
 % rx_sig = zeros(length(iter_num), K);
@@ -41,23 +41,23 @@ rx_sig = zeros(length(noise_var), K);
 for i = 1:length(noise_var)
     rx_sig(i,:) = tx_sig + noise_var(i)*randn(size(tx_sig));
 end
-%%
+%% 
 for i=1:min(size(pcmatrix))
   for j=1:max(size(pcmatrix))
       if pcmatrix(i,j) == true
-         t(i,j)=1;
+         H_matrix(i,j)=1;
       else
-         t(i,j)=0;
+         H_matrix(i,j)=0;
       end
    end
 end
 
-%%
+%% FLOODING
 rx_info = zeros(length(noise_var), num_info_bits*num_frames);
 
 for i = 1:length(noise_var)
      for j = 1:(K/block_length)
-        rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(i,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,iter_num);
+        rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(i,(block_length*(j-1) + 1):block_length*j),num_info_bits,H_matrix,iter_num);
      end
 end
 
@@ -66,7 +66,7 @@ end
 % 
 % for i = 1:length(iter_num)
 %      for j = 1:(K/block_length)
-%         rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(1,(block_length*(j-1) + 1):block_length*j),num_info_bits,t,iter_num(i));
+%         rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = LDPC_decoder(rx_sig(1,(block_length*(j-1) + 1):block_length*j),num_info_bits,H_matrix,iter_num(i));
 %      end
 % end
 
@@ -89,7 +89,7 @@ figure
 semilogy(EbN0_dB,error_p)
 grid on
 xlim([min(EbN0_dB) max(EbN0_dB)])
-ylim([1e-5 1])
+ylim([1e-6 1])
 ylabel("BER")
 
 % %% график
@@ -101,13 +101,43 @@ ylabel("BER")
 % %ylabel("BER")
 
 
+%% LAYERED
+ef = 27;
+
+rx_info = zeros(length(noise_var), num_info_bits*num_frames);
+
+for i = 1:length(noise_var)
+     for j = 1:(K/block_length)
+         %rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = decode_ldpc_layered2(rx_sig(i,(block_length*(j-1) + 1):block_length*j),H_matrix,num_info_bits,iter_num,ef);
+         rx_info(i,(num_info_bits*(j-1) + 1):num_info_bits*j) = decode_LDPC_layered(rx_sig(i,(block_length*(j-1) + 1):block_length*j),num_info_bits,H_matrix,iter_num, ef);
+     end
+end
+
+%%
+
+razn = info_bits'-rx_info;
+error_cnt = zeros(1,length(noise_var));
+for i = 1:length(noise_var)
+    error_cnt(i) = sum(razn(i,:)~=0);
+end
+
+error_p = error_cnt/K;
+
+%% график
+hold on
+semilogy(EbN0_dB,error_p)
+grid on
+xlim([min(EbN0_dB) max(EbN0_dB)])
+ylim([1e-6 1])
+ylabel("BER")
+
+
 %% BPSK
 K = 1e6;
 info = randi([0 1],1,K);
 
 %reshape(t,3,length(t)/3)
 
-EbN0_dB = -4:1:10;
 EbN0 = 10.^(EbN0_dB./10);
 Pb = 1;
 noise_var = sqrt(Pb./(2.*EbN0));
@@ -135,8 +165,8 @@ error_p = error_cnt/K;
 hold on
 semilogy(EbN0_dB,error_p)
 grid on
-xlim([min(EbN0_dB) max(EbN0_dB)])
-ylim([1e-5 1])
+%xlim([min(EbN0_dB) max(EbN0_dB)])
+ylim([1e-6 1])
 ylabel("BER")
 hold off
 

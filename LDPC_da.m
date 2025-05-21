@@ -82,11 +82,11 @@ for i = 1:length(noise_var)
     error_cnt(i) = sum(razn(i,:)~=0);
 end
 
-error_p = error_cnt/K;
+error_p_floding = error_cnt/K;
 
 %% график
 figure
-semilogy(EbN0_dB,error_p)
+semilogy(EbN0_dB,error_p_floding)
 grid on
 xlim([min(EbN0_dB) max(EbN0_dB)])
 ylim([1e-6 1])
@@ -121,11 +121,11 @@ for i = 1:length(noise_var)
     error_cnt(i) = sum(razn(i,:)~=0);
 end
 
-error_p = error_cnt/K;
+error_p_layered = error_cnt/K;
 
 %% график
 hold on
-semilogy(EbN0_dB,error_p)
+semilogy(EbN0_dB,error_p_layered)
 grid on
 xlim([min(EbN0_dB) max(EbN0_dB)])
 ylim([1e-6 1])

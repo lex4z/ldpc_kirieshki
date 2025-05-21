@@ -3,7 +3,6 @@ function data_out = decode_LDPC_layered(data_in, num_of_bits, H_matrix, iter_num
     H_matrix = H_matrix == 1;
     L_matrix = zeros(size(H_matrix));
 
-
     for iter = 1:iter_num
         for i = 1:ef:size(H_matrix,1)
             rows = i:(i+ef-1);
@@ -15,7 +14,7 @@ function data_out = decode_LDPC_layered(data_in, num_of_bits, H_matrix, iter_num
                 llr_vector(H_not_0) = sum(L_matrix(rows,H_not_0),1);
             end
 
-            for j = i:(i+ef-1)
+            for j = rows
                 L_matrix(j,H_matrix(j,:)) = row_op(L_matrix(j,H_matrix(j,:)));
             end
 
